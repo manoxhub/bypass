@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Key Bypass</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 100%);
+        color: #fff;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    body::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 20%, rgba(255, 241, 68, 0.15), transparent 50%);
+        pointer-events: none;
+    }
+
+    .container { width: 100%; max-width: 460px; padding: 20px; }
+
+    .card {
+        background: rgba(20, 20, 30, 0.9);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 241, 68, 0.3);
+        border-radius: 24px;
+        padding: 40px 30px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #FFFF1744, #ff8c00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+    }
+
+    .subtitle { text-align: center; color: #aaa; margin-bottom: 30px; }
+
+    .input-group { position: relative; margin-bottom: 25px; }
+
+    input {
+        width: 100%;
+        padding: 18px 20px 18px 55px;
+        background: rgba(10, 10, 20, 0.8);
+        border: 2px solid rgba(255, 241, 68, 0.4);
+        border-radius: 16px;
+        color: #fff;
+        font-size: 1.05rem;
+    }
+
+    input:focus {
+        border-color: #FFFF1744;
+        box-shadow: 0 0 0 4px rgba(255, 241, 68, 0.15);
+        outline: none;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #FFFF1744;
+        font-size: 1.3rem;
+    }
+
+    button {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(90deg, #FFFF1744, #ff6b00);
+        color: #121212;
+        font-size: 1.2rem;
+        font-weight: 700;
+        border: none;
+        border-radius: 16px;
+        cursor: pointer;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 10px 20px rgba(255, 241, 68, 0.3);
+    }
+
+    button:hover { transform: translateY(-3px); }
+
+    .download-btn {
+        background: linear-gradient(90deg, #4ade80, #22c55e);
+        color: #111;
+        margin-top: 10px;
+    }
+
+    #result {
+        margin-top: 25px;
+        padding: 20px;
+        background: rgba(10, 10, 20, 0.7);
+        border: 1px solid rgba(255, 241, 68, 0.3);
+        border-radius: 16px;
+        font-family: monospace;
+        min-height: 110px;
+    }
+
+    .status { text-align: center; margin: 15px 0; min-height: 24px; }
+    .success { color: #22ff88; }
+    .error { color: #ff4444; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <h1><i class="fas fa-key"></i> Manox Bypass</h1>
+        <p class="subtitle">Bypass Platoboost • Versão Web V1</p>
+
+        <div class="input-group">
+            <i class="fas fa-link input-icon"></i>
+            <input type="text" id="link" placeholder="Cole o link do Platoboost aqui..." autocomplete="off">
+        </div>
+
+        <button id="bypassBtn">
+            <i class="fas fa-bolt"></i>
+            <span id="btnText">BYPASS KEY</span>
+        </button>
+
+        <!-- Botão de Download do APK -->
+        <button class="download-btn" onclick="downloadAPK()">
+            <i class="fas fa-download"></i>
+            Baixar App Android
+        </button>
+
+        <div class="status" id="status"></div>
+        <div id="result"></div>
+    </div>
+</div>
+
+<script>
+const API_URL = "https://carango.tiposdeplantas.com.br/wp-json/a/v1/security";
+let currentKey = "";
+
+// === Verificação /bypass (mantida) ===
+if (!window.location.href.includes("/bypass")) {
+    document.body.innerHTML = `
+        <div style="text-align:center; padding:50px; color:#ffaa00;">
+            <h1><i class="fas fa-lock"></i></h1>
+            <h2>Acesso Restrito</h2>
+            <p>Esta ferramenta só pode ser acessada em uma URL que contenha <strong>/bypass</strong> por enquanto.</p>
+        </div>`;
+} else {
+    // Funcionalidade normal
+    const linkInput = document.getElementById("link");
+    const bypassBtn = document.getElementById("bypassBtn");
+    const btnText = document.getElementById("btnText");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+
+    bypassBtn.addEventListener("click", async () => {
+        const url = linkInput.value.trim();
+        if (!url.startsWith("https://auth.plato")) {
+            showStatus("❌ Link inválido.", "error");
+            return;
+        }
+
+        bypassBtn.disabled = true;
+        btnText.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processando...`;
+
+        try {
+            const res = await fetch(API_URL, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({target_url: url})
+            });
+            const data = await res.json();
+
+            if (data.key) {
+                currentKey = data.key;
+                linkInput.value = currentKey;
+                btnText.innerHTML = `<i class="fas fa-copy"></i> COPIAR`;
+                showStatus("✅ Chave obtida!", "success");
+                resultEl.innerHTML = `<strong>Bypass Link:</strong><br><span style="color:#FFFF1744">${currentKey}</span>`;
+            } else {
+                showStatus(data.message || "Erro desconhecido", "error");
+                resetButton();
+            }
+        } catch (e) {
+            showStatus("❌ Erro de conexão", "error");
+            resetButton();
+        }
+    });
+
+    function showStatus(text, type) {
+        statusEl.textContent = text;
+        statusEl.className = `status ${type}`;
+    }
+
+    function resetButton() {
+        bypassBtn.disabled = false;
+        btnText.innerHTML = `<i class="fas fa-bolt"></i> BYPASS KEY`;
+    }
+
+    // Download APK
+    window.downloadAPK = function() {
+        const apkUrl = "https://drive.google.com/uc?export=download&id=1q-SZ9r6qm_6MlTEHGx22YqMon-6qdcQ1"
+        const a = document.createElement('a');
+        a.href = apkUrl;
+        a.download = "Manox Bypass.apk";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        showStatus("⬇️ Baixando Manox Bypass.apk...", "success");
+    };
+
+    linkInput.addEventListener("keypress", e => { if (e.key === "Enter") bypassBtn.click(); });
+    window.onload = () => linkInput.focus();
+}
+</script>
+
+</body>
+</html>
